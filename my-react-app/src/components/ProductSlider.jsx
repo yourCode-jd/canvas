@@ -20,6 +20,11 @@ export default function ProductSlider({
     mono: "grayscale(1) contrast(1.2)",
   };
 
+  // 🔑 calculate scale dynamically
+  const framePadding = selectedFrame ? 160 : 0; // later we can make this dynamic per-frame
+  const baseSize = 500; // your slide height/width
+  const scaleValue = selectedFrame ? 1 - framePadding / baseSize : 1;
+
   return (
     <div className="flex gap-4">
       {/* Thumbnails */}
@@ -36,7 +41,7 @@ export default function ProductSlider({
               <img
                 src={img}
                 alt={`thumb-${i}`}
-                className="w-full h-20 object-cover rounded-lg border hover:border-black cursor-pointer"
+                className="max-w-20 w-20 h-20 object-cover rounded-lg border hover:border-black cursor-pointer"
               />
             </SwiperSlide>
           ))}
@@ -52,63 +57,50 @@ export default function ProductSlider({
           spaceBetween={0}
           className="rounded-2xl shadow-md w-full h-[500px]"
         >
-          {productImages.map((img, i) => (
-            <SwiperSlide key={i} className="!w-full !h-[500px]">
-              <div className="relative w-full h-full bg-gray-100 rounded-2xl overflow-hidden flex items-center justify-center">
-                {/* Border wrapper (always visible) */}
-                <div
-                  style={{
-                    backgroundColor: selectedBorder?.color || "transparent",
-                    padding: `${selectedBorder?.size || 0}px`,
-                    boxSizing: "content-box",
-                  }}
-                  className="flex items-center justify-center w-full h-full"
-                >
-                  {/* Artwork with optional mask */}
-                  {/* Artwork inside mask */}
-                  <div
-                    className="relative w-full h-full flex items-center justify-center"
-                    style={{
-                      backgroundColor: selectedBorder?.color || "transparent", // fills inside mask with border color
-                    }}
-                  >
-                    <img
-                      src={img}
-                      alt={`main-${i}`}
-                      className="w-full h-full object-contain transition-all duration-300"
-                      style={{
-                        filter: colorFilters[selectedColor] || "none",
-                        transform: selectedBorder?.size
-                          ? `scale(${1 - selectedBorder.size / 200})` // shrink proportionally
-                          : "scale(1)",
-                        WebkitMaskImage: selectedFrame?.mask
-                          ? `url(${selectedFrame.mask})`
-                          : "none",
-                        WebkitMaskRepeat: "no-repeat",
-                        WebkitMaskSize: "contain",
-                        WebkitMaskPosition: "center",
-                        maskImage: selectedFrame?.mask
-                          ? `url(${selectedFrame.mask})`
-                          : "none",
-                        maskRepeat: "no-repeat",
-                        maskSize: "contain",
-                        maskPosition: "center",
-                      }}
-                    />
-                  </div>
-                </div>
+          {productImages.map((img, i) => {
+            // ✅ Compute scale based on frame thickness
+            const frameThickness = selectedFrame ? 160 : 0; // adjust if you have different frames
+            const scaleValue = selectedFrame
+              ? (500 - frameThickness * 2) / 500 // visible area / full size
+              : 1;
 
-                {/* Frame overlay */}
-                {selectedFrame?.src && (
+            return (
+              <SwiperSlide key={i} className="!w-full !h-[500px]">
+                <div className="relative w-full h-full bg-gray-100 rounded-2xl overflow-hidden flex items-center justify-center">
+                  {/* Masked Image */}
                   <img
-                    src={selectedFrame.src}
-                    alt="frame"
-                    className="absolute inset-0 w-full h-full object-contain pointer-events-none z-20"
+                    src={img}
+                    alt={`main-${i}`}
+                    className="w-full h-full object-contain transition-all duration-300"
+                    style={{
+                      filter: colorFilters[selectedColor] || "none",
+                      ...(selectedFrame?.mask
+                        ? {
+                            WebkitMaskImage: `url(${selectedFrame.mask})`,
+                            WebkitMaskRepeat: "no-repeat",
+                            WebkitMaskSize: "contain",
+                            WebkitMaskPosition: "center",
+                            maskImage: `url(${selectedFrame.mask})`,
+                            maskRepeat: "no-repeat",
+                            maskSize: "contain",
+                            maskPosition: "center",
+                          }
+                        : {}),
+                    }}
                   />
-                )}
-              </div>
-            </SwiperSlide>
-          ))}
+
+                  {/* Frame overlay */}
+                  {selectedFrame?.src && (
+                    <img
+                      src={selectedFrame.src}
+                      alt="frame"
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none z-20"
+                    />
+                  )}
+                </div>
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
     </div>
