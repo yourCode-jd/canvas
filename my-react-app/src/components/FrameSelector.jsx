@@ -13,8 +13,13 @@ export default function FrameSelector({
           <button
             type="button"
             key={frame.id}
-            onClick={() => setSelectedFrame(frame)}
-            className={`border p-1 cursor-pointer ${
+            onClick={() => {
+              setSelectedFrame(frame);
+              setTimeout(() => {
+                setSelectedFrame(frame);
+              }, 50);
+            }}
+            className={`border p-1 cursor-pointer w-16 h-16 ${
               selectedFrame?.id === frame.id
                 ? "border-black"
                 : "border-gray-300"
@@ -24,7 +29,7 @@ export default function FrameSelector({
             <img
               src={frame.src}
               alt={frame.label}
-              className="w-16 h-16 object-contain"
+              className="w-full h-full object-contain"
             />
           </button>
         ))}

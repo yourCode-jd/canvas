@@ -15,7 +15,7 @@ export default function BorderSelector({
           <div
             key={i}
             onClick={() => setSelectedBorder(border)}
-            className={`w-20 h-20 overflow-hidden cursor-pointer border-2 ${
+            className={`w-16 h-16 overflow-hidden cursor-pointer border-2 ${
               selectedBorder?.label === border.label
                 ? "border-black"
                 : "border-gray-200"

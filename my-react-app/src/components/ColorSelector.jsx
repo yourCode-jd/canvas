@@ -19,7 +19,7 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
         {colors.map((color) => (
           <label
             key={color}
-            className="flex items-center gap-2 cursor-pointer select-none"
+            className="flex flex-col items-center gap-2 cursor-pointer select-none"
           >
             <input
               type="radio"
@@ -30,7 +30,7 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
               className="sr-only"
             />
             <span
-              className={`w-8 h-8 rounded-full border-2 ${
+              className={`w-16 h-16 border-2 ${
                 selectedColor === color
                   ? "border-black ring-2 ring-black/20"
                   : "border-gray-300"
