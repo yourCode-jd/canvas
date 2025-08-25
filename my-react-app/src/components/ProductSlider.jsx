@@ -163,37 +163,44 @@ export default function ProductSlider({
    * - box: where to place the framed art on that scene (percent of canvas)
    *   Tune these numbers to match each scene.
    */
+  const FIXED_BOX = {
+    w: 0.6,
+    h: 0.62,
+    x: (1 - 0.6) / 2, // 0.2
+    y: (1 - 0.62) / 2, // 0.19
+  };
+
   const scenePreviews = [
-    { label: "Plain", bg: null, box: null }, // centered
+    { label: "Plain", bg: null, box: null },
     {
       label: "Bedroom",
       bg: "/images/bg.png",
-      box: { x: 0.18, y: 0.1, w: 0.64, h: 0.68 },
+      box: { x: 0.18, y: 0.1, ...FIXED_BOX },
     },
     {
       label: "Living",
       bg: "/images/bg1.png",
-      box: { x: 0.2, y: 0.14, w: 0.6, h: 0.62 },
+      box: { x: 0.2, y: 0.14, ...FIXED_BOX },
     },
     {
       label: "Office",
       bg: "/images/bg2.png",
-      box: { x: 0.22, y: 0.16, w: 0.56, h: 0.58 },
+      box: { x: 0.22, y: 0.16, ...FIXED_BOX },
     },
     {
       label: "Hall",
       bg: "/images/bg3.png",
-      box: { x: 0.22, y: 0.16, w: 0.56, h: 0.58 },
+      box: { x: 0.25, y: 0.18, ...FIXED_BOX },
     },
     {
       label: "Studio",
       bg: "/images/bg4.png",
-      box: { x: 0.22, y: 0.16, w: 0.56, h: 0.58 },
+      box: { x: 0.23, y: 0.15, ...FIXED_BOX },
     },
     {
       label: "Loft",
       bg: "/images/bg5.png",
-      box: { x: 0.22, y: 0.16, w: 0.56, h: 0.58 },
+      box: { x: 0.21, y: 0.17, ...FIXED_BOX },
     },
   ];
 
