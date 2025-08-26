@@ -21,10 +21,10 @@ export default function FrameSelector({
                 setSelectedFrame(frame);
               }, 50);
             }}
-            className={`border-2 p-1 cursor-pointer w-16 h-16 ${
+            className={`border-2 p-1 cursor-pointer w-18 h-22 ${
               selectedFrame?.id === frame.id
                 ? "border-black"
-                : "border-gray-300"
+                : "border-gray-300 hover:border-black"
             }`}
             title={frame.label}
           >
@@ -39,7 +39,7 @@ export default function FrameSelector({
         <button
           type="button"
           onClick={() => setSelectedFrame(null)}
-          className="px-3 py-2 text-sm border-2 text-gray-700 hover:bg-gray-50 cursor-pointer"
+          className="px-3 py-2 text-sm border-2 text-gray-700 hover:bg-gray-50 cursor-pointer w-18 h-22"
         >
           No Frame
         </button>

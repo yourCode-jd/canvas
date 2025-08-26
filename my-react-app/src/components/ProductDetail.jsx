@@ -29,13 +29,25 @@ export default function ProductDetail() {
       src: "/images/frame3.png",
       mask: "/images/frame3-mask.png",
     },
+    {
+      id: "maple",
+      label: "Maple",
+      src: "/images/frame4.png",
+      mask: "/images/frame4-mask.png",
+    },
+    {
+      id: "cherry",
+      label: "Cherry",
+      src: "/images/frame6.png",
+      mask: "/images/frame6-mask.png",
+    },
   ];
 
   const [selectedFrame, setSelectedFrame] = useState(frameOptions[0]); // ✅ default Walnut
 
   const mattingOptions = [
     { label: "None", size: 0 },
-    { label: "Small Matting", size: 45 },
+    { label: "Small Matting", size: 50 },
     { label: "Medium Matting", size: 60 },
     { label: "Large Matting", size: 90 },
   ];
@@ -85,7 +97,7 @@ export default function ProductDetail() {
           setSelectedMatting={setSelectedMatting}
         />
 
-        <Button className="w-40">Order Now</Button>
+        <Button className="w-60">Order Now</Button>
       </div>
     </div>
   );

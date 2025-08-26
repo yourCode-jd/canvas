@@ -185,9 +185,13 @@ export default function ProductSlider({
   };
 
   const scenePreviews = [
-    { label: "Plain", bg: null, box: FIXED_BOX }, // 👈 full-size, no scale
     {
-      label: "Bedroom",
+      // label: "Plain",
+      bg: null,
+      box: FIXED_BOX,
+    }, // 👈 full-size, no scale
+    {
+      // label: "Bedroom",
       bg: "/images/001.png",
       box: FIXED_BOX,
       scale: 0.4,
@@ -195,7 +199,7 @@ export default function ProductSlider({
       y: 150,
     },
     {
-      label: "Living",
+      // label: "Living",
       bg: "/images/002.png",
       box: FIXED_BOX,
       scale: 0.4,
@@ -203,7 +207,7 @@ export default function ProductSlider({
       y: 100,
     },
     {
-      label: "Office",
+      // label: "Office",
       bg: "/images/003.png",
       box: FIXED_BOX,
       scale: 0.3,
@@ -211,7 +215,7 @@ export default function ProductSlider({
       y: 120,
     },
     {
-      label: "Hall",
+      // label: "Hall",
       bg: "/images/004.png",
       box: FIXED_BOX,
       scale: 0.3,
@@ -219,14 +223,37 @@ export default function ProductSlider({
       y: 120,
     },
     {
-      label: "Studio",
+      // label: "Studio",
       bg: "/images/005.png",
       box: FIXED_BOX,
       scale: 0.3,
       x: 180,
       y: 120,
     },
-    { label: "Loft", bg: "/images/bg5.png", box: FIXED_BOX, scale: 1.2 },
+    {
+      // label: "Loft",
+      bg: "/images/006.png",
+      box: FIXED_BOX,
+      scale: 0.4,
+      x: 150,
+      y: 60,
+    },
+    {
+      // label: "Loft",
+      bg: "/images/007.png",
+      box: FIXED_BOX,
+      scale: 0.4,
+      x: 150,
+      y: 60,
+    },
+    {
+      // label: "Loft",
+      bg: "/images/008.png",
+      box: FIXED_BOX,
+      scale: 0.4,
+      x: 150,
+      y: 60,
+    },
   ];
 
   const MAIN_W = 512;

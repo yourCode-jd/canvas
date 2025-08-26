@@ -32,8 +32,10 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
               className="sr-only"
             />
             <span
-              className={`w-16 h-16 border-2 ${
-                selectedColor === color ? "border-black" : "border-gray-300"
+              className={`w-16 h-20 border-2 ${
+                selectedColor === color
+                  ? "border-black"
+                  : "border-gray-300 hover:border-black"
               }`}
               style={{
                 backgroundColor: swatchBg[color],
@@ -45,7 +47,15 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
               }}
               aria-hidden="true"
             />
-            <span className="capitalize">{color}</span>
+            <span
+              className={`capitalize text-sm ${
+                selectedColor === color
+                  ? "text-black font-medium"
+                  : "text-gray-600"
+              }`}
+            >
+              {color}
+            </span>
           </label>
         ))}
       </div>
