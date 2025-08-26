@@ -21,13 +21,11 @@ function drawContainToRect(ctx, img, x, y, w, h) {
 
   let dw, dh, dx, dy;
   if (sAspect > dAspect) {
-    // limit by width
     dw = w;
     dh = dw / sAspect;
     dx = x;
     dy = y + (h - dh) / 2;
   } else {
-    // limit by height
     dh = h;
     dw = dh * sAspect;
     dx = x + (w - dw) / 2;
@@ -38,8 +36,6 @@ function drawContainToRect(ctx, img, x, y, w, h) {
 
 /**
  * Draw full composition into given canvas.
- * If targetBox (percentages) is provided, the framed art is drawn
- * INSIDE that rectangle (contain fit). Otherwise it is centered.
  */
 const drawToCanvas = async ({
   canvas,
@@ -51,7 +47,7 @@ const drawToCanvas = async ({
   width,
   height,
   sceneBg,
-  targetBox, // {x,y,w,h} — all 0..1 (percent of final canvas)
+  targetBox,
 }) => {
   if (!canvas || !baseSrc) return;
   const ctx = canvas.getContext("2d");
@@ -69,7 +65,7 @@ const drawToCanvas = async ({
   canvas.height = height;
   ctx.clearRect(0, 0, width, height);
 
-  // background (contain-fit so nothing is cropped)
+  // background
   if (sceneImg) {
     drawContainToRect(ctx, sceneImg, 0, 0, width, height);
   } else {
@@ -93,7 +89,7 @@ const drawToCanvas = async ({
     t.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
   }
 
-  // art (with color filter)
+  // art
   t.filter = colorFilter || "none";
   t.drawImage(baseImg, mattingSize, mattingSize, baseWidth, baseHeight);
   t.filter = "none";
@@ -105,7 +101,7 @@ const drawToCanvas = async ({
     t.globalCompositeOperation = "source-over";
   }
 
-  // optional border
+  // border
   if (border && border.size > 0) {
     t.strokeStyle = border.color || "#000";
     t.lineWidth = border.size;
@@ -128,13 +124,38 @@ const drawToCanvas = async ({
     const y = targetBox.y * height;
     const w = targetBox.w * width;
     const h = targetBox.h * height;
-    // contain-fit the art inside the target box
     drawContainToRect(ctx, tempCanvas, x, y, w, h);
   } else {
-    // center-fit on the whole canvas
     drawContainToRect(ctx, tempCanvas, 0, 0, width, height);
   }
 };
+
+/** helper: apply scaling + offsets to a targetBox */
+function applyScale(box, scene, scale = 1) {
+  if (!box) return null;
+
+  // 🔥 For Plain scene (no scale defined or scale === 1), use box as-is (full size)
+  if (!scene.scale || scene.scale === 1) {
+    return { ...box };
+  }
+
+  const w = box.w * scale;
+  const h = box.h * scale;
+
+  // default centering
+  let x = box.x + (box.w - w) / 2;
+  let y = box.y + (box.h - h) / 2;
+
+  // allow per-scene overrides (scene.x, scene.y)
+  if (typeof scene.x === "number") {
+    x = scene.x > 1 ? scene.x / 512 : scene.x;
+  }
+  if (typeof scene.y === "number") {
+    y = scene.y > 1 ? scene.y / 734 : scene.y;
+  }
+
+  return { w, h, x, y };
+}
 
 export default function ProductSlider({
   productImages = [],
@@ -143,9 +164,8 @@ export default function ProductSlider({
   selectedBorder = null,
   selectedMatting = null,
 }) {
-  // Use the first product image as the art
   const [currentImage] = useState(productImages[0] || null);
-  const [currentScene, setCurrentScene] = useState(0); // index into scenePreviews
+  const [currentScene, setCurrentScene] = useState(0);
   const mainCanvasRef = useRef(null);
   const thumbRefs = useRef([]);
 
@@ -157,63 +177,68 @@ export default function ProductSlider({
     mono: "grayscale(1) contrast(1.2)",
   };
 
-  /**
-   * Scenes:
-   * - bg: background image path (your bg.png, bg1.png, bg2.png, ...)
-   * - box: where to place the framed art on that scene (percent of canvas)
-   *   Tune these numbers to match each scene.
-   */
   const FIXED_BOX = {
-    w: 0.6,
-    h: 0.62,
-    x: (1 - 0.6) / 2, // 0.2
-    y: (1 - 0.62) / 2, // 0.19
+    w: 1,
+    h: 1,
+    x: 0,
+    y: 0,
   };
 
   const scenePreviews = [
-    { label: "Plain", bg: null, box: null },
+    { label: "Plain", bg: null, box: FIXED_BOX }, // 👈 full-size, no scale
     {
       label: "Bedroom",
-      bg: "/images/bg.png",
-      box: { x: 0.18, y: 0.1, ...FIXED_BOX },
+      bg: "/images/001.png",
+      box: FIXED_BOX,
+      scale: 0.4,
+      x: 80,
+      y: 150,
     },
     {
       label: "Living",
-      bg: "/images/bg1.png",
-      box: { x: 0.2, y: 0.14, ...FIXED_BOX },
+      bg: "/images/002.png",
+      box: FIXED_BOX,
+      scale: 0.4,
+      x: 160,
+      y: 100,
     },
     {
       label: "Office",
-      bg: "/images/bg2.png",
-      box: { x: 0.22, y: 0.16, ...FIXED_BOX },
+      bg: "/images/003.png",
+      box: FIXED_BOX,
+      scale: 0.3,
+      x: 170,
+      y: 120,
     },
     {
       label: "Hall",
-      bg: "/images/bg3.png",
-      box: { x: 0.25, y: 0.18, ...FIXED_BOX },
+      bg: "/images/004.png",
+      box: FIXED_BOX,
+      scale: 0.3,
+      x: 70,
+      y: 120,
     },
     {
       label: "Studio",
-      bg: "/images/bg4.png",
-      box: { x: 0.23, y: 0.15, ...FIXED_BOX },
+      bg: "/images/005.png",
+      box: FIXED_BOX,
+      scale: 0.3,
+      x: 180,
+      y: 120,
     },
-    {
-      label: "Loft",
-      bg: "/images/bg5.png",
-      box: { x: 0.21, y: 0.17, ...FIXED_BOX },
-    },
+    { label: "Loft", bg: "/images/bg5.png", box: FIXED_BOX, scale: 1.2 },
   ];
 
-  // ---------- sizes (portrait 512×734)
   const MAIN_W = 512;
   const MAIN_H = 734;
-  const THUMB_W = 70; // pick a small width
-  const THUMB_H = Math.round((THUMB_W * MAIN_H) / MAIN_W); // keep the same aspect (≈100)
+  const THUMB_W = 70;
+  const THUMB_H = Math.round((THUMB_W * MAIN_H) / MAIN_W);
 
   // draw main
   useEffect(() => {
     if (!currentImage) return;
     const scene = scenePreviews[currentScene];
+    const scaledBox = applyScale(scene.box, scene, scene.scale);
     drawToCanvas({
       canvas: mainCanvasRef.current,
       baseSrc: currentImage,
@@ -224,7 +249,7 @@ export default function ProductSlider({
       width: MAIN_W,
       height: MAIN_H,
       sceneBg: scene.bg,
-      targetBox: scene.box,
+      targetBox: scaledBox,
     });
   }, [
     currentImage,
@@ -241,6 +266,7 @@ export default function ProductSlider({
     scenePreviews.forEach((scene, i) => {
       const canvas = thumbRefs.current[i];
       if (!canvas) return;
+      const scaledBox = applyScale(scene.box, scene, scene.scale);
       drawToCanvas({
         canvas,
         baseSrc: currentImage,
@@ -251,7 +277,7 @@ export default function ProductSlider({
         width: THUMB_W,
         height: THUMB_H,
         sceneBg: scene.bg,
-        targetBox: scene.box, // same placement, auto-fits to 70×~100
+        targetBox: scaledBox,
       });
     });
   }, [
@@ -265,15 +291,12 @@ export default function ProductSlider({
   return (
     <div className="flex gap-6">
       {/* Thumbnails */}
-      <div
-        className="w-[90px] flex flex-col"
-        style={{ height: "734px" }} // match main canvas height
-      >
+      <div className="w-[90px] flex flex-col" style={{ height: "734px" }}>
         <Swiper
           direction="vertical"
-          slidesPerView={6} // or "auto"
+          slidesPerView={6}
           spaceBetween={12}
-          style={{ height: "100%" }} // fill parent
+          style={{ height: "100%" }}
         >
           {scenePreviews.map((scene, i) => (
             <SwiperSlide key={scene.label} style={{ height: THUMB_H + 24 }}>

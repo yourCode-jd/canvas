@@ -35,7 +35,7 @@ export default function ProductDetail() {
 
   const mattingOptions = [
     { label: "None", size: 0 },
-    { label: "Small Matting", size: 30 },
+    { label: "Small Matting", size: 45 },
     { label: "Medium Matting", size: 60 },
     { label: "Large Matting", size: 90 },
   ];
