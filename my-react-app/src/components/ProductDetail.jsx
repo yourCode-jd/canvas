@@ -2,14 +2,12 @@ import React, { useState } from "react";
 import ProductSlider from "./ProductSlider";
 import ColorSelector from "./ColorSelector";
 import FrameSelector from "./FrameSelector";
+import MattingSelector from "./MattingSelector"; // 👈 new import
 import { Button } from "./Button";
 
 export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState("original");
-  const [selectedFrame, setSelectedFrame] = useState(null);
-  const [selectedMatting, setSelectedMatting] = useState(null);
 
-  // ✅ Product images (from public/images)
   const productImages = ["/images/art1.png"];
 
   const frameOptions = [
@@ -33,6 +31,8 @@ export default function ProductDetail() {
     },
   ];
 
+  const [selectedFrame, setSelectedFrame] = useState(frameOptions[0]); // ✅ default Walnut
+
   const mattingOptions = [
     { label: "None", size: 0 },
     { label: "Small Matting", size: 45 },
@@ -40,8 +40,10 @@ export default function ProductDetail() {
     { label: "Large Matting", size: 90 },
   ];
 
+  const [selectedMatting, setSelectedMatting] = useState(mattingOptions[0]); // ✅ default None
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 items-start max-w-screen-2xl mx-auto">
       {/* Left: Product Canvas Slider */}
       <ProductSlider
         productImages={productImages}
@@ -52,7 +54,7 @@ export default function ProductDetail() {
       />
 
       {/* Right: Product Info & Selectors */}
-      <div className="flex flex-col space-y-8">
+      <div className="flex flex-col space-y-9">
         <div className="text-left">
           <h1 className="text-3xl font-bold mb-2 text-black">
             Abstract Wall Art
@@ -77,27 +79,11 @@ export default function ProductDetail() {
         />
 
         {/* Matting Selector */}
-        <div>
-          <h2 className="text-lg font-semibold mb-2 text-left">
-            Choose Matting
-          </h2>
-          <div className="flex gap-4">
-            {mattingOptions.map((mat) => (
-              <button
-                key={mat.size}
-                type="button"
-                onClick={() => setSelectedMatting(mat)}
-                className={`border p-2 cursor-pointer rounded ${
-                  selectedMatting?.size === mat.size
-                    ? "border-black bg-gray-100"
-                    : "border-gray-300"
-                }`}
-              >
-                {mat.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <MattingSelector
+          mattingOptions={mattingOptions}
+          selectedMatting={selectedMatting}
+          setSelectedMatting={setSelectedMatting}
+        />
 
         <Button className="w-40">Order Now</Button>
       </div>

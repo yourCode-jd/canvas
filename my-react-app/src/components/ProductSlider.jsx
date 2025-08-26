@@ -306,7 +306,7 @@ export default function ProductSlider({
                   height={THUMB_H}
                   ref={(el) => (thumbRefs.current[i] = el)}
                   onClick={() => setCurrentScene(i)}
-                  className={`rounded-lg cursor-pointer border ${
+                  className={`cursor-pointer border ${
                     currentScene === i ? "border-black" : "border-gray-200"
                   }`}
                 />
@@ -320,7 +320,7 @@ export default function ProductSlider({
       </div>
 
       {/* Main Canvas */}
-      <div className="border border-gray-200 rounded-lg bg-white overflow-hidden p-4">
+      <div className="border border-gray-200  bg-white overflow-hidden p-4">
         <canvas
           ref={mainCanvasRef}
           width={MAIN_W}

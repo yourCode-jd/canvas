@@ -14,7 +14,9 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-2 text-left">Choose Style</h2>
+      <h2 className="text-lg font-semibold mb-2 text-left uppercase">
+        Choose Style
+      </h2>
       <div className="flex gap-4">
         {colors.map((color) => (
           <label
@@ -31,9 +33,7 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
             />
             <span
               className={`w-16 h-16 border-2 ${
-                selectedColor === color
-                  ? "border-black ring-2 ring-black/20"
-                  : "border-gray-300"
+                selectedColor === color ? "border-black" : "border-gray-300"
               }`}
               style={{
                 backgroundColor: swatchBg[color],
