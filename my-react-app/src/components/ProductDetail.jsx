@@ -3,12 +3,12 @@ import ProductSlider from "./ProductSlider";
 import ColorSelector from "./ColorSelector";
 import FrameSelector from "./FrameSelector";
 import MattingSelector from "./MattingSelector";
+import BorderSelector from "./BorderSelector"; // new import
 import { Button } from "./Button";
 
 export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState("original");
   const productImages = useMemo(() => ["/images/art1.png"], []);
-
   const frameOptions = useMemo(
     () => [
       {
@@ -44,9 +44,7 @@ export default function ProductDetail() {
     ],
     []
   );
-
   const [selectedFrame, setSelectedFrame] = useState(frameOptions[0]);
-
   const mattingOptions = useMemo(
     () => [
       { label: "None", size: 0 },
@@ -56,8 +54,18 @@ export default function ProductDetail() {
     ],
     []
   );
-
   const [selectedMatting, setSelectedMatting] = useState(mattingOptions[0]);
+
+  const borderOptions = useMemo(
+    () => [
+      { label: "None", size: 0, color: "#000" },
+      { label: "Thin", size: 4, color: "#000" },
+      { label: "Medium", size: 8, color: "#000" },
+      { label: "Thick", size: 12, color: "#000" },
+    ],
+    []
+  );
+  const [selectedBorder, setSelectedBorder] = useState(borderOptions[0]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 py-18 items-start max-w-screen-2xl mx-auto">
@@ -65,10 +73,9 @@ export default function ProductDetail() {
         productImages={productImages}
         selectedColor={selectedColor}
         selectedFrame={selectedFrame}
-        selectedBorder={null} // Placeholder for future border selector
+        selectedBorder={selectedBorder}
         selectedMatting={selectedMatting}
       />
-
       <div className="flex flex-col space-y-9">
         <div className="text-left">
           <h1 className="text-3xl font-bold mb-2 text-black">
@@ -76,7 +83,8 @@ export default function ProductDetail() {
           </h1>
           <p className="text-black leading-relaxed max-w-lg">
             A modern abstract painting that brings luxury vibes to your living
-            space. High-quality print with customizable frames and matting.
+            space. High-quality print with customizable frames, matting, and
+            borders.
           </p>
         </div>
         <ColorSelector
@@ -93,6 +101,11 @@ export default function ProductDetail() {
           selectedMatting={selectedMatting}
           setSelectedMatting={setSelectedMatting}
         />
+        {/* <BorderSelector
+          borderOptions={borderOptions}
+          selectedBorder={selectedBorder}
+          setSelectedBorder={setSelectedBorder}
+        /> */}
         <Button className="w-60">Order Now</Button>
       </div>
     </div>
