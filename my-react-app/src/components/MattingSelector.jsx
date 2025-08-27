@@ -11,13 +11,13 @@ export default function MattingSelector({
       <h2 className="text-lg font-semibold mb-4 text-left uppercase">
         Choose Matting
       </h2>
-      <div className="flex gap-6">
+      <div className="flex flex-wrap md:gap-6 gap-3">
         {mattingOptions.map((mat) => (
           <div key={mat.size} className="flex flex-col items-center">
             <button
               type="button"
               onClick={() => setSelectedMatting(mat)}
-              className={`w-18 h-22 border-2 transition-all duration-200 flex items-center justify-center cursor-pointer ${
+              className={`md:w-18 w-14 md:h-22 h-18 border-2 transition-all duration-200 flex items-center justify-center cursor-pointer ${
                 selectedMatting?.size === mat.size
                   ? "border-black"
                   : "border-gray-300 hover:border-black"

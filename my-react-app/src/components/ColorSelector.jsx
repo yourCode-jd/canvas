@@ -17,7 +17,7 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
       <h2 className="text-lg font-semibold mb-2 text-left uppercase">
         Choose Style
       </h2>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap md:gap-4 gap-3">
         {colors.map((color) => (
           <label
             key={color}
@@ -32,7 +32,7 @@ export default function ColorSelector({ selectedColor, setSelectedColor }) {
               className="sr-only"
             />
             <span
-              className={`w-16 h-20 border-2 ${
+              className={`md:w-16 w-12 md:h-20 h-18 border-2 ${
                 selectedColor === color
                   ? "border-black"
                   : "border-gray-300 hover:border-black"

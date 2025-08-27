@@ -10,7 +10,7 @@ export default function FrameSelector({
       <h2 className="text-lg font-semibold mb-2 text-left uppercase">
         Choose Frame
       </h2>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap md:gap-4 gap-3">
         {frameOptions.map((frame) => (
           <button
             type="button"
@@ -21,7 +21,7 @@ export default function FrameSelector({
                 setSelectedFrame(frame);
               }, 50);
             }}
-            className={`border-2 p-1 cursor-pointer w-18 h-22 ${
+            className={`border-2 p-1 cursor-pointer md:w-18 w-12 md:h-22 h-16 ${
               selectedFrame?.id === frame.id
                 ? "border-black"
                 : "border-gray-300 hover:border-black"
@@ -39,7 +39,7 @@ export default function FrameSelector({
         <button
           type="button"
           onClick={() => setSelectedFrame(null)}
-          className="px-3 py-2 text-sm border-2 text-gray-700 hover:bg-gray-50 cursor-pointer w-18 h-22"
+          className="px-1 py-1 md:text-sm text-xs border-2 text-gray-700 hover:bg-gray-50 cursor-pointer md:w-18 w-12 md:h-22 h-16"
         >
           No Frame
         </button>

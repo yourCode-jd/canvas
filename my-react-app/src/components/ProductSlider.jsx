@@ -31,63 +31,27 @@ function drawContainToRect(ctx, img, x, y, w, h) {
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-const drawShadow = (ctx, tempCanvas, x, y, w, h, isThumbnail) => {
-  if (isThumbnail) {
-    const pad = Math.max(8, Math.round(Math.min(w, h) * 0.12));
-    const s = document.createElement("canvas");
-    s.width = Math.round(w + pad * 2);
-    s.height = Math.round(h + pad * 2);
-    const sctx = s.getContext("2d");
-    sctx.filter = `blur(6px)`;
-    sctx.fillStyle = "rgba(0,0,0,0.08)";
-    sctx.fillRect(pad, pad, w, h);
-    sctx.filter = "none";
-    ctx.drawImage(s, x - pad + 3, y - pad + 4);
-    drawContainToRect(ctx, tempCanvas, x, y, w, h);
-    return;
-  }
+const drawSolidShadow = (
+  ctx,
+  box,
+  lightDir = { x: -1, y: 1 },
+  distance = 8,
+  shadowColor = "rgba(0,0,0,0.5)"
+) => {
+  const { x, y, w, h } = box;
+  const dx = lightDir.x < 0 ? distance : -distance;
+  const dy = lightDir.y > 0 ? distance : -distance;
 
-  // Ambient shadow
-  const ambientPad = Math.round(Math.max(w, h) * 0.55);
-  const sA = document.createElement("canvas");
-  sA.width = Math.round(w + ambientPad * 2);
-  sA.height = Math.round(h + ambientPad * 2);
-  const sActx = sA.getContext("2d");
-  sActx.filter = `blur(42px)`;
-  sActx.fillStyle = "rgba(0,0,0,0.06)";
-  sActx.fillRect(ambientPad, ambientPad, w, h);
-  sActx.filter = "none";
-  ctx.drawImage(sA, x - ambientPad + 2, y - ambientPad + 4);
-
-  // Directional drop shadow
-  const dropPad = Math.round(Math.min(w, h) * 0.2);
-  const sD = document.createElement("canvas");
-  sD.width = Math.round(w + dropPad * 2);
-  sD.height = Math.round(h + dropPad * 2);
-  const sDctx = sD.getContext("2d");
-  sDctx.filter = `blur(18px)`;
-  sDctx.fillStyle = "rgba(0,0,0,0.22)";
-  sDctx.fillRect(dropPad, dropPad, w, h);
-  sDctx.filter = "none";
-  ctx.drawImage(sD, x - dropPad + 6, y - dropPad + 20);
-
-  // Corner falloff
-  const cornerSize = Math.round(Math.min(w, h) * 0.45);
-  const corners = [
-    [x, y, 0.1],
-    [x + w, y, 0.08],
-    [x, y + h, 0.1],
-    [x + w, y + h, 0.18],
-  ];
-  corners.forEach(([cx, cy, opacity]) => {
-    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, cornerSize);
-    grad.addColorStop(0, `rgba(0,0,0,${opacity})`);
-    grad.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(cx - cornerSize, cy - cornerSize, cornerSize, cornerSize);
-  });
-
-  drawContainToRect(ctx, tempCanvas, x, y, w, h);
+  ctx.save();
+  ctx.fillStyle = shadowColor;
+  ctx.beginPath();
+  ctx.moveTo(x + dx, y + dy);
+  ctx.lineTo(x + w + dx, y + dy);
+  ctx.lineTo(x + w + dx, y + h + dy);
+  ctx.lineTo(x + dx, y + h + dy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 };
 
 const drawToCanvas = async ({
@@ -101,6 +65,9 @@ const drawToCanvas = async ({
   height,
   sceneBg,
   targetBox,
+  lightDir = { x: -1, y: 1 },
+  shadowDistance = 8,
+  shadowColor = "rgba(0,0,0,0.5)",
 }) => {
   if (!canvas || !baseSrc) return;
   const ctx = canvas.getContext("2d");
@@ -111,18 +78,19 @@ const drawToCanvas = async ({
     loadImage(sceneBg),
   ]);
   if (!baseImg) return;
+
   canvas.width = width;
   canvas.height = height;
   ctx.clearRect(0, 0, width, height);
 
-  // background
+  // Draw background
   if (sceneImg) drawContainToRect(ctx, sceneImg, 0, 0, width, height);
   else {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, width, height);
   }
 
-  // temp canvas for art
+  // Temp canvas for product image
   const baseWidth = 512;
   const baseHeight = 734;
   const mattingSize = matting?.size || 0;
@@ -130,18 +98,22 @@ const drawToCanvas = async ({
   tempCanvas.width = baseWidth + mattingSize * 2;
   tempCanvas.height = baseHeight + mattingSize * 2;
   const t = tempCanvas.getContext("2d");
+
   if (mattingSize > 0) {
     t.fillStyle = "#fff";
     t.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
   }
+
   t.filter = colorFilter || "none";
   t.drawImage(baseImg, mattingSize, mattingSize, baseWidth, baseHeight);
   t.filter = "none";
+
   if (maskImg) {
     t.globalCompositeOperation = "destination-in";
     t.drawImage(maskImg, 0, 0, tempCanvas.width, tempCanvas.height);
     t.globalCompositeOperation = "source-over";
   }
+
   if (border && border.size > 0) {
     t.strokeStyle = border.color || "#000";
     t.lineWidth = border.size;
@@ -152,17 +124,40 @@ const drawToCanvas = async ({
       tempCanvas.height - border.size
     );
   }
+
   if (frameImg)
     t.drawImage(frameImg, 0, 0, tempCanvas.width, tempCanvas.height);
 
+  // Determine if this is a thumbnail
   const isThumbnail = width <= 120 || height <= 160;
+
   if (targetBox) {
     const x = targetBox.x * width;
     const y = targetBox.y * height;
     const w = targetBox.w * width;
     const h = targetBox.h * height;
-    drawShadow(ctx, tempCanvas, x, y, w, h, isThumbnail);
-  } else drawShadow(ctx, tempCanvas, 0, 0, width, height, isThumbnail);
+    if (!isThumbnail) {
+      drawSolidShadow(
+        ctx,
+        { x, y, w, h },
+        lightDir,
+        shadowDistance,
+        shadowColor
+      );
+    }
+    drawContainToRect(ctx, tempCanvas, x, y, w, h);
+  } else {
+    if (!isThumbnail) {
+      drawSolidShadow(
+        ctx,
+        { x: 0, y: 0, w: width, h: height },
+        lightDir,
+        shadowDistance,
+        shadowColor
+      );
+    }
+    drawContainToRect(ctx, tempCanvas, 0, 0, width, height);
+  }
 };
 
 function applyScale(box, scene, scale = 1) {
@@ -183,6 +178,9 @@ export default function ProductSlider({
   selectedFrame = null,
   selectedBorder = null,
   selectedMatting = null,
+  lightDir = { x: -1, y: 1 },
+  shadowDistance = 8,
+  shadowColor = "rgba(0,0,0,0.5)",
 }) {
   const [currentImage] = useState(productImages[0] || null);
   const [currentScene, setCurrentScene] = useState(0);
@@ -237,6 +235,9 @@ export default function ProductSlider({
       height: MAIN_H,
       sceneBg: scene.bg,
       targetBox: scaledBox,
+      lightDir,
+      shadowDistance,
+      shadowColor,
     });
   }, [
     currentImage,
@@ -247,6 +248,9 @@ export default function ProductSlider({
     selectedMatting,
     scenePreviews,
     colorFilters,
+    lightDir,
+    shadowDistance,
+    shadowColor,
   ]);
 
   useEffect(() => {
@@ -266,6 +270,9 @@ export default function ProductSlider({
         height: THUMB_H,
         sceneBg: scene.bg,
         targetBox: scaledBox,
+        lightDir,
+        shadowDistance,
+        shadowColor,
       });
     });
   }, [
@@ -276,46 +283,69 @@ export default function ProductSlider({
     selectedMatting,
     scenePreviews,
     colorFilters,
+    lightDir,
+    shadowDistance,
+    shadowColor,
   ]);
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col-reverse md:flex-row gap-6 justify-center lg:justify-end items-start">
+      {/* Thumbnails */}
       <div
-        className="relative w-[90px] flex flex-col"
-        style={{ height: "770px" }}
+        className="relative w-full md:w-[90px] flex flex-row md:flex-col overflow-x-auto md:overflow-visible"
+        style={{ height: "auto", maxHeight: "734px" }}
       >
-        <div className="absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-10" />
+        {/* Top gradient for vertical swiper (hidden on mobile) */}
+        <div className="absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-10 hidden md:block" />
+
         <Swiper
           direction="vertical"
           slidesPerView={6}
           spaceBetween={12}
           style={{ height: "100%" }}
           className="thumbnail-swiper"
+          breakpoints={{
+            0: {
+              // Mobile
+              direction: "horizontal",
+              slidesPerView: 4,
+              spaceBetween: 8,
+            },
+            768: {
+              // Tablet/Desktop
+              direction: "vertical",
+              slidesPerView: 6,
+              spaceBetween: 12,
+            },
+          }}
         >
           {scenePreviews.map((scene, i) => (
-            <SwiperSlide key={i} style={{ height: THUMB_H + 24 }}>
-              <div className="flex flex-col items-center">
+            <SwiperSlide
+              key={i}
+              className="flex justify-center items-center p-2"
+            >
+              <div className="flex flex-col items-center w-[50px] md:w-[70px] sm:w-auto">
                 <canvas
-                  width={THUMB_W}
-                  height={THUMB_H}
                   ref={(el) => (thumbRefs.current[i] = el)}
                   onClick={() => setCurrentScene(i)}
                   className={`cursor-pointer border ${
                     currentScene === i ? "border-black" : "border-gray-200"
-                  }`}
+                  } w-full h-auto`}
                 />
               </div>
             </SwiperSlide>
           ))}
         </Swiper>
-        <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10" />
+
+        {/* Bottom gradient for vertical swiper (hidden on mobile) */}
+        <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 hidden md:block" />
       </div>
-      <div className="border border-gray-200 bg-white overflow-hidden p-4">
+
+      {/* Main canvas */}
+      <div className="w-full max-w-[512px] aspect-[512/734] border border-gray-200 bg-white overflow-hidden p-4">
         <canvas
           ref={mainCanvasRef}
-          width={MAIN_W}
-          height={MAIN_H}
-          style={{ display: "block" }}
+          style={{ width: "100%", height: "100%", display: "block" }}
         />
       </div>
     </div>

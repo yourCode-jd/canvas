@@ -3,7 +3,7 @@
 #root {
     max-width: 1560px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1rem;
     text-align: center;
     width: 100%;
 }
@@ -14,4 +14,10 @@
 
 .thumbnail-swiper:active {
     cursor: grabbing;
+}
+
+@media (max-width: 640px) {
+    .thumbnail-container {
+        height: auto !important;
+    }
 }
