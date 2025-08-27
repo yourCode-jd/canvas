@@ -14,8 +14,8 @@ export default function ProductDetail() {
     {
       id: "walnut",
       label: "Walnut",
-      src: "/images/frame1.png",
-      mask: "/images/frame1-mask.png",
+      src: "/images/fv/frame1.png",
+      mask: "/images/fv/frame1-mask.png",
     },
     {
       id: "black",
@@ -55,7 +55,7 @@ export default function ProductDetail() {
   const [selectedMatting, setSelectedMatting] = useState(mattingOptions[0]); // ✅ default None
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 items-start max-w-screen-2xl mx-auto">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 py-18 items-start max-w-screen-2xl mx-auto">
       {/* Left: Product Canvas Slider */}
       <ProductSlider
         productImages={productImages}

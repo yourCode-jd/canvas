@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+#root {
+    max-width: 1560px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    text-align: center;
+    width: 100%;
+}
+
+.thumbnail-swiper {
+    cursor: grab;
+}
+
+.thumbnail-swiper:active {
+    cursor: grabbing;
+}
