@@ -309,7 +309,13 @@ export default function ProductSlider({
               // Mobile
               direction: "horizontal",
               slidesPerView: 4,
-              spaceBetween: 8,
+              spaceBetween: 4,
+            },
+            575: {
+              // Tablet/Desktop
+              direction: "horizontal",
+              slidesPerView: 6,
+              spaceBetween: 4,
             },
             768: {
               // Tablet/Desktop
@@ -324,7 +330,7 @@ export default function ProductSlider({
               key={i}
               className="flex justify-center items-center p-2"
             >
-              <div className="flex flex-col items-center w-[50px] md:w-[70px] sm:w-auto">
+              <div className="flex flex-col items-center md:w-[70px] w-auto">
                 <canvas
                   ref={(el) => (thumbRefs.current[i] = el)}
                   onClick={() => setCurrentScene(i)}
@@ -342,11 +348,23 @@ export default function ProductSlider({
       </div>
 
       {/* Main canvas */}
-      <div className="w-full max-w-[512px] aspect-[512/734] border border-gray-200 bg-white overflow-hidden p-4">
-        <canvas
-          ref={mainCanvasRef}
-          style={{ width: "100%", height: "100%", display: "block" }}
-        />
+      <div className="flex flex-col gap-3 md:gap-0 md:flex-row w-full">
+        <div className="text-left md:hidden block">
+          <h1 className="text-3xl font-bold mb-2 text-black">
+            Abstract Wall Art
+          </h1>
+          <p className="text-black leading-relaxed text-sm">
+            A modern abstract painting that brings luxury vibes to your living
+            space. High-quality print with customizable frames, matting, and
+            borders.
+          </p>
+        </div>
+        <div className="w-full max-w-[512px] aspect-[512/734] border border-gray-200 bg-white overflow-hidden p-4 mx-auto">
+          <canvas
+            ref={mainCanvasRef}
+            style={{ width: "100%", height: "100%", display: "block" }}
+          />
+        </div>
       </div>
     </div>
   );
