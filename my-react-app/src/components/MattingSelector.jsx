@@ -4,7 +4,7 @@ export default function MattingSelector({
   mattingOptions,
   selectedMatting,
   setSelectedMatting,
-  previewImage = "/images/art1.png", // 👈 default preview artwork
+  previewImage = "/images/art1.png", // default artwork
 }) {
   return (
     <div>
@@ -27,19 +27,19 @@ export default function MattingSelector({
               <div
                 className="bg-white flex items-center justify-center w-full h-full"
                 style={{
-                  padding: `${mat.size / 8}px`, // 👈 simulate mat thickness
+                  padding: `${mat.size / 8}px`, // simulate mat thickness
                 }}
               >
-                {/* Artwork preview */}
+                {/* Show matting image if exists, else base artwork */}
                 <img
-                  src={previewImage}
+                  src={mat.src || previewImage}
                   alt={mat.label}
                   className="w-full h-full object-cover"
                 />
               </div>
             </button>
 
-            {/* Label text outside */}
+            {/* Label text */}
             <span
               className={`mt-2 text-sm font-normal ${
                 selectedMatting?.size === mat.size

@@ -9,6 +9,7 @@ import { Button } from "./Button";
 export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState("original");
   const productImages = useMemo(() => ["/images/art1.png"], []);
+
   const frameOptions = useMemo(
     () => [
       {
@@ -45,12 +46,14 @@ export default function ProductDetail() {
     []
   );
   const [selectedFrame, setSelectedFrame] = useState(frameOptions[0]);
+
+  // Add src for matting images
   const mattingOptions = useMemo(
     () => [
-      { label: "None", size: 0 },
-      { label: "Small Matting", size: 50 },
-      { label: "Medium Matting", size: 60 },
-      { label: "Large Matting", size: 90 },
+      { label: "None", size: 0, src: null },
+      { label: "Small Matting", size: 50, src: "/images/art1-matted.png" },
+      { label: "Medium Matting", size: 60, src: "/images/art2-matted.png" },
+      { label: "Large Matting", size: 90, src: "/images/art3-matted.png" },
     ],
     []
   );
@@ -74,7 +77,7 @@ export default function ProductDetail() {
         selectedColor={selectedColor}
         selectedFrame={selectedFrame}
         selectedBorder={selectedBorder}
-        selectedMatting={selectedMatting}
+        selectedMatting={selectedMatting} // ← pass matting with src
       />
       <div className="flex flex-col md:space-y-9 space-y-6">
         <div className="text-left hidden md:block">

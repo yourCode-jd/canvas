@@ -57,6 +57,7 @@ const drawSolidShadow = (
 const drawToCanvas = async ({
   canvas,
   baseSrc,
+  mattingSrc,
   frame,
   border,
   matting,
@@ -71,13 +72,17 @@ const drawToCanvas = async ({
 }) => {
   if (!canvas || !baseSrc) return;
   const ctx = canvas.getContext("2d");
-  const [baseImg, frameImg, maskImg, sceneImg] = await Promise.all([
+
+  const [baseImg, mattingImg, frameImg, maskImg, sceneImg] = await Promise.all([
     loadImage(baseSrc),
+    loadImage(mattingSrc),
     loadImage(frame?.src),
     loadImage(frame?.mask),
     loadImage(sceneBg),
   ]);
-  if (!baseImg) return;
+
+  const finalImg = mattingImg || baseImg;
+  if (!finalImg) return;
 
   canvas.width = width;
   canvas.height = height;
@@ -94,7 +99,6 @@ const drawToCanvas = async ({
   const baseHeight = 734;
   const matSize = matting?.size || 0;
 
-  // Temp canvas for matting + image + frame
   const tempCanvas = document.createElement("canvas");
   tempCanvas.width = baseWidth;
   tempCanvas.height = baseHeight;
@@ -110,56 +114,13 @@ const drawToCanvas = async ({
   const innerW = baseWidth - matSize * 2;
   const innerH = baseHeight - matSize * 2;
 
-  // ============ white space equal but image shrink  ============= //
-  if (baseImg) {
-    t.drawImage(baseImg, innerX, innerY, innerW, innerH);
+  // Draw base/matting image with color filter
+  if (finalImg) {
+    t.save();
+    t.filter = colorFilter || "none";
+    t.drawImage(finalImg, innerX, innerY, innerW, innerH);
+    t.restore();
   }
-
-  // ============ white space not equal  ============= //
-  // if (baseImg) {
-  //   const imgAspect = baseImg.width / baseImg.height;
-  //   const boxAspect = innerW / innerH;
-
-  //   let dw, dh;
-
-  //   if (imgAspect > boxAspect) {
-
-  //     dw = innerW;
-  //     dh = dw / imgAspect;
-  //   } else {
-
-  //     dh = innerH;
-  //     dw = dh * imgAspect;
-  //   }
-
-  //   const dx = innerX + (innerW - dw) / 2;
-  //   const dy = innerY + (innerH - dh) / 2;
-
-  //   t.drawImage(baseImg, dx, dy, dw, dh);
-
-  //   t.save();
-  //   t.globalCompositeOperation = "destination-over";
-  //   t.fillStyle = "white";
-  //   t.fillRect(0, 0, baseWidth, baseHeight);
-  //   t.restore();
-  // }
-
-  // ============ white space equal but image cropped  =============== //
-  // if (baseImg) {
-
-  //   t.drawImage(baseImg, 0, 0, baseWidth, baseHeight);
-
-  //   t.save();
-  //   t.globalCompositeOperation = "destination-in";
-  //   t.fillRect(innerX, innerY, innerW, innerH);
-  //   t.restore();
-
-  //   t.save();
-  //   t.globalCompositeOperation = "destination-over";
-  //   t.fillStyle = "white";
-  //   t.fillRect(0, 0, baseWidth, baseHeight);
-  //   t.restore();
-  // }
 
   // Apply mask
   if (maskImg) {
@@ -180,10 +141,9 @@ const drawToCanvas = async ({
     );
   }
 
-  // Frame
+  // Draw frame WITHOUT filter
   if (frameImg) t.drawImage(frameImg, 0, 0, baseWidth, baseHeight);
 
-  // Thumbnail check
   const isThumb = width <= 120 || height <= 160;
 
   if (targetBox) {
@@ -202,10 +162,7 @@ const drawToCanvas = async ({
       );
     }
 
-    ctx.save();
-    ctx.filter = colorFilter || "none"; // ← yahan color filter apply karo
     drawContainToRect(ctx, tempCanvas, x, y, w, h);
-    ctx.restore();
   } else {
     if (!isThumb) {
       drawSolidShadow(
@@ -217,10 +174,7 @@ const drawToCanvas = async ({
       );
     }
 
-    ctx.save();
-    ctx.filter = colorFilter || "none"; // ← yahan bhi
     drawContainToRect(ctx, tempCanvas, 0, 0, width, height);
-    ctx.restore();
   }
 };
 
@@ -241,7 +195,7 @@ export default function ProductSlider({
   selectedColor = "original",
   selectedFrame = null,
   selectedBorder = null,
-  selectedMatting = null,
+  selectedMatting = null, // object with size, color, src
   lightDir = { x: -1, y: 1 },
   shadowDistance = 8,
   shadowColor = "rgba(0,0,0,0.5)",
@@ -284,7 +238,6 @@ export default function ProductSlider({
   const THUMB_W = 70;
   const THUMB_H = Math.round((THUMB_W * MAIN_H) / MAIN_W);
 
-  // Main canvas
   useEffect(() => {
     if (!currentImage) return;
     const scene = scenePreviews[currentScene];
@@ -293,6 +246,7 @@ export default function ProductSlider({
     drawToCanvas({
       canvas: mainCanvasRef.current,
       baseSrc: currentImage,
+      mattingSrc: selectedMatting?.src,
       frame: selectedFrame,
       border: selectedBorder,
       matting: selectedMatting,
@@ -319,7 +273,6 @@ export default function ProductSlider({
     shadowColor,
   ]);
 
-  // Thumbnails
   useEffect(() => {
     if (!currentImage) return;
 
@@ -328,7 +281,6 @@ export default function ProductSlider({
       if (!canvas) return;
 
       const scaledBox = applyScale(scene.box, scene, scene.scale);
-
       const scaleFactor = THUMB_W / MAIN_W;
       const thumbMatting = selectedMatting
         ? {
@@ -340,6 +292,7 @@ export default function ProductSlider({
       drawToCanvas({
         canvas,
         baseSrc: currentImage,
+        mattingSrc: selectedMatting?.src,
         frame: selectedFrame,
         border: selectedBorder,
         matting: thumbMatting,
@@ -368,7 +321,6 @@ export default function ProductSlider({
 
   return (
     <div className="flex flex-col-reverse md:flex-row gap-6 justify-center lg:justify-end items-start">
-      {/* Thumbnails */}
       <div
         className="relative w-full md:w-[90px] flex flex-row md:flex-col overflow-x-auto md:overflow-visible"
         style={{ height: "auto", maxHeight: "734px" }}
@@ -406,7 +358,6 @@ export default function ProductSlider({
         <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 hidden md:block" />
       </div>
 
-      {/* Main */}
       <div className="flex flex-col gap-3 md:gap-0 md:flex-row w-full">
         <div className="text-left md:hidden block">
           <h1 className="text-3xl font-bold mb-2 text-black">
