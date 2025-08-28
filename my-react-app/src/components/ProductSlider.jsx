@@ -83,60 +83,69 @@ const drawToCanvas = async ({
   canvas.height = height;
   ctx.clearRect(0, 0, width, height);
 
-  // Draw background
+  // Background
   if (sceneImg) drawContainToRect(ctx, sceneImg, 0, 0, width, height);
   else {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, width, height);
   }
 
-  // Temp canvas for product image
   const baseWidth = 512;
   const baseHeight = 734;
-  const mattingSize = matting?.size || 0;
+  const matSize = matting?.size || 0;
+
+  // Temp canvas for matting + image + frame
   const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = baseWidth + mattingSize * 2;
-  tempCanvas.height = baseHeight + mattingSize * 2;
+  tempCanvas.width = baseWidth;
+  tempCanvas.height = baseHeight;
   const t = tempCanvas.getContext("2d");
 
-  if (mattingSize > 0) {
-    t.fillStyle = "#fff";
-    t.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  // Fill matting background
+  t.fillStyle = matting?.color || "#fff";
+  t.fillRect(0, 0, baseWidth, baseHeight);
+
+  // Inner box for image inside matting
+  const innerX = matSize;
+  const innerY = matSize;
+  const innerW = baseWidth - matSize * 2;
+  const innerH = baseHeight - matSize * 2;
+
+  if (baseImg) {
+    t.drawImage(baseImg, innerX, innerY, innerW, innerH);
   }
 
-  t.filter = colorFilter || "none";
-  t.drawImage(baseImg, mattingSize, mattingSize, baseWidth, baseHeight);
-  t.filter = "none";
-
+  // Apply mask
   if (maskImg) {
     t.globalCompositeOperation = "destination-in";
-    t.drawImage(maskImg, 0, 0, tempCanvas.width, tempCanvas.height);
+    t.drawImage(maskImg, 0, 0, baseWidth, baseHeight);
     t.globalCompositeOperation = "source-over";
   }
 
+  // Border
   if (border && border.size > 0) {
     t.strokeStyle = border.color || "#000";
     t.lineWidth = border.size;
     t.strokeRect(
       border.size / 2,
       border.size / 2,
-      tempCanvas.width - border.size,
-      tempCanvas.height - border.size
+      baseWidth - border.size,
+      baseHeight - border.size
     );
   }
 
-  if (frameImg)
-    t.drawImage(frameImg, 0, 0, tempCanvas.width, tempCanvas.height);
+  // Frame
+  if (frameImg) t.drawImage(frameImg, 0, 0, baseWidth, baseHeight);
 
-  // Determine if this is a thumbnail
-  const isThumbnail = width <= 120 || height <= 160;
+  // Thumbnail check
+  const isThumb = width <= 120 || height <= 160;
 
   if (targetBox) {
     const x = targetBox.x * width;
     const y = targetBox.y * height;
     const w = targetBox.w * width;
     const h = targetBox.h * height;
-    if (!isThumbnail) {
+
+    if (!isThumb) {
       drawSolidShadow(
         ctx,
         { x, y, w, h },
@@ -147,7 +156,7 @@ const drawToCanvas = async ({
     }
     drawContainToRect(ctx, tempCanvas, x, y, w, h);
   } else {
-    if (!isThumbnail) {
+    if (!isThumb) {
       drawSolidShadow(
         ctx,
         { x: 0, y: 0, w: width, h: height },
@@ -220,10 +229,12 @@ export default function ProductSlider({
   const THUMB_W = 70;
   const THUMB_H = Math.round((THUMB_W * MAIN_H) / MAIN_W);
 
+  // Main canvas
   useEffect(() => {
     if (!currentImage) return;
     const scene = scenePreviews[currentScene];
     const scaledBox = applyScale(scene.box, scene, scene.scale);
+
     drawToCanvas({
       canvas: mainCanvasRef.current,
       baseSrc: currentImage,
@@ -253,18 +264,30 @@ export default function ProductSlider({
     shadowColor,
   ]);
 
+  // Thumbnails
   useEffect(() => {
     if (!currentImage) return;
+
     scenePreviews.forEach((scene, i) => {
       const canvas = thumbRefs.current[i];
       if (!canvas) return;
+
       const scaledBox = applyScale(scene.box, scene, scene.scale);
+
+      const scaleFactor = THUMB_W / MAIN_W;
+      const thumbMatting = selectedMatting
+        ? {
+            ...selectedMatting,
+            size: Math.max(1, Math.round(selectedMatting.size * scaleFactor)),
+          }
+        : null;
+
       drawToCanvas({
         canvas,
         baseSrc: currentImage,
         frame: selectedFrame,
         border: selectedBorder,
-        matting: selectedMatting,
+        matting: thumbMatting,
         colorFilter: colorFilters[selectedColor],
         width: THUMB_W,
         height: THUMB_H,
@@ -295,9 +318,7 @@ export default function ProductSlider({
         className="relative w-full md:w-[90px] flex flex-row md:flex-col overflow-x-auto md:overflow-visible"
         style={{ height: "auto", maxHeight: "734px" }}
       >
-        {/* Top gradient for vertical swiper (hidden on mobile) */}
         <div className="absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-10 hidden md:block" />
-
         <Swiper
           direction="vertical"
           slidesPerView={6}
@@ -305,24 +326,9 @@ export default function ProductSlider({
           style={{ height: "100%" }}
           className="thumbnail-swiper"
           breakpoints={{
-            0: {
-              // Mobile
-              direction: "horizontal",
-              slidesPerView: 4,
-              spaceBetween: 4,
-            },
-            575: {
-              // Tablet/Desktop
-              direction: "horizontal",
-              slidesPerView: 6,
-              spaceBetween: 4,
-            },
-            768: {
-              // Tablet/Desktop
-              direction: "vertical",
-              slidesPerView: 6,
-              spaceBetween: 12,
-            },
+            0: { direction: "horizontal", slidesPerView: 4, spaceBetween: 4 },
+            575: { direction: "horizontal", slidesPerView: 6, spaceBetween: 4 },
+            768: { direction: "vertical", slidesPerView: 6, spaceBetween: 12 },
           }}
         >
           {scenePreviews.map((scene, i) => (
@@ -342,12 +348,10 @@ export default function ProductSlider({
             </SwiperSlide>
           ))}
         </Swiper>
-
-        {/* Bottom gradient for vertical swiper (hidden on mobile) */}
         <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 hidden md:block" />
       </div>
 
-      {/* Main canvas */}
+      {/* Main */}
       <div className="flex flex-col gap-3 md:gap-0 md:flex-row w-full">
         <div className="text-left md:hidden block">
           <h1 className="text-3xl font-bold mb-2 text-black">
