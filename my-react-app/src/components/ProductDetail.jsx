@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import ProductSlider from "./ProductSlidermain";
+import ProductSlider from "./ProductSlider";
 import ColorSelector from "./ColorSelector";
 import FrameSelector from "./FrameSelector";
 import MattingSelector from "./MattingSelector";
@@ -68,16 +68,14 @@ export default function ProductDetail() {
   const [selectedBorder, setSelectedBorder] = useState(borderOptions[0]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] md:gap-12 gap-6 md:p-8 p-8 md:py-18 py-10 items-start max-w-screen-2xl mx-auto">
+    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] md:gap-12 gap-6 md:p-8 p-4 md:py-18 py-10 items-start max-w-screen-2xl mx-auto">
       <ProductSlider
-        productImages={["/images/art1.png"]}
-        mattedImage={"/images/art1-matted.png"} // ✅ 4th image
+        productImages={productImages}
         selectedColor={selectedColor}
         selectedFrame={selectedFrame}
         selectedBorder={selectedBorder}
         selectedMatting={selectedMatting}
       />
-
       <div className="flex flex-col md:space-y-9 space-y-6">
         <div className="text-left hidden md:block">
           <h1 className="text-3xl font-bold mb-2 text-black">
