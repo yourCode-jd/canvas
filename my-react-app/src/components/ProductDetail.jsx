@@ -71,7 +71,7 @@ export default function ProductDetail() {
   const [selectedBorder, setSelectedBorder] = useState(borderOptions[0]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] md:gap-12 gap-6 md:p-8 p-4 md:py-18 py-10 items-start max-w-screen-2xl mx-auto">
+    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] md:gap-12 gap-6 md:p-8 p-4 md:py-18 py-10 items-start max-w-screen-xl mx-auto">
       <ProductSlider
         productImages={productImages}
         selectedColor={selectedColor}
