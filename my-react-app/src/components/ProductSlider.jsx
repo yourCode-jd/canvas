@@ -110,9 +110,56 @@ const drawToCanvas = async ({
   const innerW = baseWidth - matSize * 2;
   const innerH = baseHeight - matSize * 2;
 
+  // ============ white space equal but image shrink  ============= //
   if (baseImg) {
     t.drawImage(baseImg, innerX, innerY, innerW, innerH);
   }
+
+  // ============ white space not equal  ============= //
+  // if (baseImg) {
+  //   const imgAspect = baseImg.width / baseImg.height;
+  //   const boxAspect = innerW / innerH;
+
+  //   let dw, dh;
+
+  //   if (imgAspect > boxAspect) {
+
+  //     dw = innerW;
+  //     dh = dw / imgAspect;
+  //   } else {
+
+  //     dh = innerH;
+  //     dw = dh * imgAspect;
+  //   }
+
+  //   const dx = innerX + (innerW - dw) / 2;
+  //   const dy = innerY + (innerH - dh) / 2;
+
+  //   t.drawImage(baseImg, dx, dy, dw, dh);
+
+  //   t.save();
+  //   t.globalCompositeOperation = "destination-over";
+  //   t.fillStyle = "white";
+  //   t.fillRect(0, 0, baseWidth, baseHeight);
+  //   t.restore();
+  // }
+
+  // ============ white space equal but image cropped  =============== //
+  // if (baseImg) {
+
+  //   t.drawImage(baseImg, 0, 0, baseWidth, baseHeight);
+
+  //   t.save();
+  //   t.globalCompositeOperation = "destination-in";
+  //   t.fillRect(innerX, innerY, innerW, innerH);
+  //   t.restore();
+
+  //   t.save();
+  //   t.globalCompositeOperation = "destination-over";
+  //   t.fillStyle = "white";
+  //   t.fillRect(0, 0, baseWidth, baseHeight);
+  //   t.restore();
+  // }
 
   // Apply mask
   if (maskImg) {
