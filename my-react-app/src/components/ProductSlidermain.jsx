@@ -1,4 +1,3 @@
-// ✅ Updated ProductSlider.jsx
 import React, { useRef, useEffect, useState, useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -58,13 +57,10 @@ const drawSolidShadow = (
 const drawToCanvas = async ({
   canvas,
   baseSrc,
-  mattedSrc1, // ✅ Matting option 1
-  mattedSrc2, // ✅ Matting option 2
-  mattedSrc3, // ✅ Matting option 3
-  selectedMattingOption, // ✅ 1, 2, or 3
   frame,
   border,
   matting,
+  colorFilter,
   width,
   height,
   sceneBg,
@@ -73,26 +69,15 @@ const drawToCanvas = async ({
   shadowDistance = 8,
   shadowColor = "rgba(0,0,0,0.5)",
 }) => {
-  if (!canvas) return;
+  if (!canvas || !baseSrc) return;
   const ctx = canvas.getContext("2d");
-
-  const [
-    baseImg,
-    mattedImg1,
-    mattedImg2,
-    mattedImg3,
-    frameImg,
-    maskImg,
-    sceneImg,
-  ] = await Promise.all([
+  const [baseImg, frameImg, maskImg, sceneImg] = await Promise.all([
     loadImage(baseSrc),
-    loadImage(mattedSrc1),
-    loadImage(mattedSrc2),
-    loadImage(mattedSrc3),
     loadImage(frame?.src),
     loadImage(frame?.mask),
     loadImage(sceneBg),
   ]);
+  if (!baseImg) return;
 
   canvas.width = width;
   canvas.height = height;
@@ -107,33 +92,82 @@ const drawToCanvas = async ({
 
   const baseWidth = 512;
   const baseHeight = 734;
+  const matSize = matting?.size || 0;
 
-  // Temp canvas
+  // Temp canvas for matting + image + frame
   const tempCanvas = document.createElement("canvas");
   tempCanvas.width = baseWidth;
   tempCanvas.height = baseHeight;
   const t = tempCanvas.getContext("2d");
 
-  // ✅ Use pre-matted images directly
-  if (selectedMattingOption === 1 && mattedImg1) {
-    t.drawImage(mattedImg1, 0, 0, baseWidth, baseHeight);
-  } else if (selectedMattingOption === 2 && mattedImg2) {
-    t.drawImage(mattedImg2, 0, 0, baseWidth, baseHeight);
-  } else if (selectedMattingOption === 3 && mattedImg3) {
-    t.drawImage(mattedImg3, 0, 0, baseWidth, baseHeight);
-  } else if (baseImg) {
-    // ❌ Commenting out old matting calculation
-    // t.fillStyle = matting?.color || "#fff";
-    // t.fillRect(0, 0, baseWidth, baseHeight);
-    // const innerX = matting?.size || 0;
-    // const innerY = matting?.size || 0;
-    // const innerW = baseWidth - innerX * 2;
-    // const innerH = baseHeight - innerY * 2;
-    // t.drawImage(baseImg, innerX, innerY, innerW, innerH);
+  // Fill matting background
+  t.fillStyle = matting?.color || "#fff";
+  t.fillRect(0, 0, baseWidth, baseHeight);
 
-    // ✅ If no matted image, fallback to original image
-    t.drawImage(baseImg, 0, 0, baseWidth, baseHeight);
+  // Inner box for image inside matting
+  const innerX = matSize;
+  const innerY = matSize;
+  const innerW = baseWidth - matSize * 2;
+  const innerH = baseHeight - matSize * 2;
+
+  //   Current 3 options we tried (all code-based)
+
+  // Shrink (fit inside mat box) → preserves whole image, equal matting, but image looks small.
+
+  // Crop (draw full, cut with mat window) → image scale stays correct, equal matting, but some parts are hidden.
+
+  // Proportional scale (no crop) → image not hidden, scale correct, but matting not equal.
+
+  // ============ white space equal but image shrink  ============= //
+  if (baseImg) {
+    t.drawImage(baseImg, innerX, innerY, innerW, innerH);
   }
+
+  // ============ white space not equal  ============= //
+  // if (baseImg) {
+  //   const imgAspect = baseImg.width / baseImg.height;
+  //   const boxAspect = innerW / innerH;
+
+  //   let dw, dh;
+
+  //   if (imgAspect > boxAspect) {
+
+  //     dw = innerW;
+  //     dh = dw / imgAspect;
+  //   } else {
+
+  //     dh = innerH;
+  //     dw = dh * imgAspect;
+  //   }
+
+  //   const dx = innerX + (innerW - dw) / 2;
+  //   const dy = innerY + (innerH - dh) / 2;
+
+  //   t.drawImage(baseImg, dx, dy, dw, dh);
+
+  //   t.save();
+  //   t.globalCompositeOperation = "destination-over";
+  //   t.fillStyle = "white";
+  //   t.fillRect(0, 0, baseWidth, baseHeight);
+  //   t.restore();
+  // }
+
+  // ============ white space equal but image cropped  =============== //
+  // if (baseImg) {
+
+  //   t.drawImage(baseImg, 0, 0, baseWidth, baseHeight);
+
+  //   t.save();
+  //   t.globalCompositeOperation = "destination-in";
+  //   t.fillRect(innerX, innerY, innerW, innerH);
+  //   t.restore();
+
+  //   t.save();
+  //   t.globalCompositeOperation = "destination-over";
+  //   t.fillStyle = "white";
+  //   t.fillRect(0, 0, baseWidth, baseHeight);
+  //   t.restore();
+  // }
 
   // Apply mask
   if (maskImg) {
@@ -157,7 +191,7 @@ const drawToCanvas = async ({
   // Frame
   if (frameImg) t.drawImage(frameImg, 0, 0, baseWidth, baseHeight);
 
-  // Shadow + Placement
+  // Thumbnail check
   const isThumb = width <= 120 || height <= 160;
 
   if (targetBox) {
@@ -204,10 +238,6 @@ function applyScale(box, scene, scale = 1) {
 
 export default function ProductSlider({
   productImages = [],
-  mattedImage1 = null, // ✅ option 1
-  mattedImage2 = null, // ✅ option 2
-  mattedImage3 = null, // ✅ option 3
-  selectedMattingOption = 0, // ✅ which matting is selected
   selectedColor = "original",
   selectedFrame = null,
   selectedBorder = null,
@@ -240,6 +270,11 @@ export default function ProductSlider({
       { bg: "/images/001.png", box: FIXED_BOX, scale: 0.4, x: 80, y: 150 },
       { bg: "/images/002.png", box: FIXED_BOX, scale: 0.4, x: 160, y: 100 },
       { bg: "/images/003.png", box: FIXED_BOX, scale: 0.3, x: 170, y: 120 },
+      { bg: "/images/004.png", box: FIXED_BOX, scale: 0.3, x: 70, y: 120 },
+      { bg: "/images/005.png", box: FIXED_BOX, scale: 0.3, x: 180, y: 120 },
+      { bg: "/images/006.png", box: FIXED_BOX, scale: 0.4, x: 150, y: 60 },
+      { bg: "/images/007.png", box: FIXED_BOX, scale: 0.4, x: 150, y: 60 },
+      { bg: "/images/008.png", box: FIXED_BOX, scale: 0.4, x: 150, y: 60 },
     ],
     []
   );
@@ -251,21 +286,17 @@ export default function ProductSlider({
 
   // Main canvas
   useEffect(() => {
-    if (!currentImage && !mattedImage1 && !mattedImage2 && !mattedImage3)
-      return;
+    if (!currentImage) return;
     const scene = scenePreviews[currentScene];
     const scaledBox = applyScale(scene.box, scene, scene.scale);
 
     drawToCanvas({
       canvas: mainCanvasRef.current,
       baseSrc: currentImage,
-      mattedSrc1: mattedImage1,
-      mattedSrc2: mattedImage2,
-      mattedSrc3: mattedImage3,
-      selectedMattingOption,
       frame: selectedFrame,
       border: selectedBorder,
       matting: selectedMatting,
+      colorFilter: colorFilters[selectedColor],
       width: MAIN_W,
       height: MAIN_H,
       sceneBg: scene.bg,
@@ -276,11 +307,54 @@ export default function ProductSlider({
     });
   }, [
     currentImage,
-    mattedImage1,
-    mattedImage2,
-    mattedImage3,
-    selectedMattingOption,
     currentScene,
+    selectedColor,
+    selectedFrame,
+    selectedBorder,
+    selectedMatting,
+    scenePreviews,
+    colorFilters,
+    lightDir,
+    shadowDistance,
+    shadowColor,
+  ]);
+
+  // Thumbnails
+  useEffect(() => {
+    if (!currentImage) return;
+
+    scenePreviews.forEach((scene, i) => {
+      const canvas = thumbRefs.current[i];
+      if (!canvas) return;
+
+      const scaledBox = applyScale(scene.box, scene, scene.scale);
+
+      const scaleFactor = THUMB_W / MAIN_W;
+      const thumbMatting = selectedMatting
+        ? {
+            ...selectedMatting,
+            size: Math.max(1, Math.round(selectedMatting.size * scaleFactor)),
+          }
+        : null;
+
+      drawToCanvas({
+        canvas,
+        baseSrc: currentImage,
+        frame: selectedFrame,
+        border: selectedBorder,
+        matting: thumbMatting,
+        colorFilter: colorFilters[selectedColor],
+        width: THUMB_W,
+        height: THUMB_H,
+        sceneBg: scene.bg,
+        targetBox: scaledBox,
+        lightDir,
+        shadowDistance,
+        shadowColor,
+      });
+    });
+  }, [
+    currentImage,
     selectedColor,
     selectedFrame,
     selectedBorder,
@@ -295,15 +369,28 @@ export default function ProductSlider({
   return (
     <div className="flex flex-col-reverse md:flex-row gap-6 justify-center lg:justify-end items-start">
       {/* Thumbnails */}
-      <div className="relative w-full md:w-[90px] flex flex-row md:flex-col overflow-x-auto md:overflow-visible">
+      <div
+        className="relative w-full md:w-[90px] flex flex-row md:flex-col overflow-x-auto md:overflow-visible"
+        style={{ height: "auto", maxHeight: "734px" }}
+      >
+        <div className="absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-10 hidden md:block" />
         <Swiper
           direction="vertical"
           slidesPerView={6}
           spaceBetween={12}
           style={{ height: "100%" }}
+          className="thumbnail-swiper"
+          breakpoints={{
+            0: { direction: "horizontal", slidesPerView: 4, spaceBetween: 4 },
+            575: { direction: "horizontal", slidesPerView: 6, spaceBetween: 4 },
+            768: { direction: "vertical", slidesPerView: 6, spaceBetween: 12 },
+          }}
         >
           {scenePreviews.map((scene, i) => (
-            <SwiperSlide key={i}>
+            <SwiperSlide
+              key={i}
+              className="flex justify-center items-center p-2"
+            >
               <div className="flex flex-col items-center md:w-[70px] w-auto">
                 <canvas
                   ref={(el) => (thumbRefs.current[i] = el)}
@@ -316,10 +403,21 @@ export default function ProductSlider({
             </SwiperSlide>
           ))}
         </Swiper>
+        <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 hidden md:block" />
       </div>
 
       {/* Main */}
       <div className="flex flex-col gap-3 md:gap-0 md:flex-row w-full">
+        <div className="text-left md:hidden block">
+          <h1 className="text-3xl font-bold mb-2 text-black">
+            Abstract Wall Art
+          </h1>
+          <p className="text-black leading-relaxed text-sm">
+            A modern abstract painting that brings luxury vibes to your living
+            space. High-quality print with customizable frames, matting, and
+            borders.
+          </p>
+        </div>
         <div className="w-full max-w-[512px] aspect-[512/734] border border-gray-200 bg-white overflow-hidden p-4 mx-auto">
           <canvas
             ref={mainCanvasRef}
