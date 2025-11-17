@@ -15,7 +15,7 @@ A sleek, interactive product detail page that lets users customize wall art fram
 ## 🖼️ Screenshots
 
 ![Desktop View](./my-react-app/public/images/FrameCraft_desktop.png)  
-![Responsive View](./my-react-app/public/images/FrameCraft_desktop.png)
+![Responsive View](./my-react-app/public/images/FrameCraft_mobile.png)
 
 ---
 
