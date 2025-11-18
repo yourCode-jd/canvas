@@ -8,7 +8,7 @@ A sleek, interactive product detail page that lets users customize wall art fram
 
 ## 🚀 Github Demo
 
-[View Here](https://yourcode-jd.github.io/canvas/)
+[View Here](https://yourcode-jd.github.io/FrameCraft/)
 
 ---
 
